@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useFood } from "../hooks/useFood";
 import "../../../styles/create-food.css";
 
@@ -9,9 +8,9 @@ const CreateFood = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [videoURL, setVideoURL] = useState("");
   const [fileError, setFileError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const fileInputRef = useRef(null);
 
-  const navigate = useNavigate();
   const { handleCreateFood, creatingFood, foodError, clearFoodError } =
     useFood();
 
@@ -31,6 +30,8 @@ const CreateFood = () => {
 
   const onFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
+    setSuccessMessage("");
+
     if (!file) {
       setVideoFile(null);
       setFileError("");
@@ -48,6 +49,8 @@ const CreateFood = () => {
   const onDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setSuccessMessage("");
+
     const file = e.dataTransfer?.files?.[0];
     if (!file) {
       return;
@@ -69,10 +72,18 @@ const CreateFood = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setSuccessMessage("");
 
     try {
       await handleCreateFood({ name, description, videoFile });
-      navigate("/");
+      setName("");
+      setDescription("");
+      setVideoFile(null);
+      setFileError("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setSuccessMessage("Food uploaded successfully.");
     } catch {
       // error is handled by food context
     }
@@ -155,6 +166,7 @@ const CreateFood = () => {
                 {foodError}
               </p>
             ) : null}
+            {successMessage ? <p role="status">{successMessage}</p> : null}
 
             {videoFile ? (
               <div className="file-chip" aria-live="polite">
@@ -214,7 +226,10 @@ const CreateFood = () => {
               type="text"
               placeholder="e.g., Spicy Paneer Wrap"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setSuccessMessage("");
+                setName(e.target.value);
+              }}
               required
             />
           </div>
@@ -226,7 +241,10 @@ const CreateFood = () => {
               rows={4}
               placeholder="Write a short description: ingredients, taste, spice level, etc."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setSuccessMessage("");
+                setDescription(e.target.value);
+              }}
             />
           </div>
 

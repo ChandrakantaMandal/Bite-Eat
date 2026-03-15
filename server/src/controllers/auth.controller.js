@@ -4,10 +4,23 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const BlacklistToken = require("../models/blacklistToken.model.js");
 
+function normalizeEmail(email = "") {
+  return email.trim().toLowerCase();
+}
+
 async function registerUser(req, res) {
   const { fullName, email, password } = req.body;
+  const normalizedEmail = normalizeEmail(email);
 
-  const isUserAlradyExists = await userModel.findOne({ email });
+  if (!fullName?.trim() || !normalizedEmail || !password) {
+    return res.status(400).json({
+      message: "Full name, email, and password are required",
+    });
+  }
+
+  const isUserAlradyExists = await userModel.findOne({
+    email: normalizedEmail,
+  });
   if (isUserAlradyExists) {
     return res.status(400).json({
       message: "User already exists",
@@ -17,8 +30,8 @@ async function registerUser(req, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await userModel.create({
-    fullName,
-    email,
+    fullName: fullName.trim(),
+    email: normalizedEmail,
     password: hashedPassword,
   });
 
@@ -38,8 +51,15 @@ async function registerUser(req, res) {
 
 async function loginUser(req, res) {
   const { email, password } = req.body;
+  const normalizedEmail = normalizeEmail(email);
 
-  const user = await userModel.findOne({ email });
+  if (!normalizedEmail || !password) {
+    return res.status(400).json({
+      message: "Email and password are required",
+    });
+  }
+
+  const user = await userModel.findOne({ email: normalizedEmail });
   if (!user) {
     return res.status(400).json({
       message: "Invalid credentials",
@@ -116,10 +136,27 @@ async function registerFoodPartner(req, res) {
     address,
     contactName,
   } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+  const partnerName = (name || fullName || "").trim();
+  const partnerPhone = (phoneNumber || phone || "").trim();
+
+  if (
+    !partnerName ||
+    !contactName?.trim() ||
+    !partnerPhone ||
+    !address?.trim() ||
+    !normalizedEmail ||
+    !password
+  ) {
+    return res.status(400).json({
+      message:
+        "Business name, contact name, phone, address, email, and password are required",
+    });
+  }
 
   const [existingUser, existingFoodPartner] = await Promise.all([
-    userModel.findOne({ email }),
-    foodPartnerModel.findOne({ email }),
+    userModel.findOne({ email: normalizedEmail }),
+    foodPartnerModel.findOne({ email: normalizedEmail }),
   ]);
 
   if (existingUser || existingFoodPartner) {
@@ -131,12 +168,12 @@ async function registerFoodPartner(req, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const foodPartner = await foodPartnerModel.create({
-    name: name || fullName,
-    email,
+    name: partnerName,
+    email: normalizedEmail,
     password: hashedPassword,
-    phoneNumber: phoneNumber || phone,
-    address,
-    contactName,
+    phoneNumber: partnerPhone,
+    address: address.trim(),
+    contactName: contactName.trim(),
   });
 
   const token = jwt.sign({ userId: foodPartner._id }, process.env.JWT_SECRET);
@@ -158,8 +195,17 @@ async function registerFoodPartner(req, res) {
 
 async function loginFoodPartner(req, res) {
   const { email, password } = req.body;
+  const normalizedEmail = normalizeEmail(email);
 
-  const foodPartner = await foodPartnerModel.findOne({ email });
+  if (!normalizedEmail || !password) {
+    return res.status(400).json({
+      message: "Email and password are required",
+    });
+  }
+
+  const foodPartner = await foodPartnerModel.findOne({
+    email: normalizedEmail,
+  });
   if (!foodPartner) {
     return res.status(400).json({
       message: "Invalid credentials",

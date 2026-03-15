@@ -45,7 +45,7 @@ async function createFood(req, res) {
     });
   }
 
-  const fileUploadResult = await uploadFile(req, req.file.buffer, uuid());
+  const fileUploadResult = await uploadFile(req.file.buffer, uuid());
 
   const foodItem = await foodModel.create({
     name: req.body.name,
