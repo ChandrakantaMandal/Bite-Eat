@@ -76,13 +76,18 @@ Run these commands in separate terminals:
 - `cd client && npm install`
 - `cd server && npm install`
 
-### 2. Create server environment variables
+### 2. Create environment variables
 
-Copy the `.env.example` file in the `server/` directory to `.env` and fill in the values:
+**Client** — copy `client/.env.example` to `client/.env`:
+
+- `VITE_API_URL=http://localhost:3000`
+
+**Server** — copy `server/.env.example` to `server/.env` and fill in the values:
 
 - `PORT=3000`
 - `MONGODB_URL=your_mongodb_connection_string`
 - `JWT_SECRET=your_jwt_secret`
+- `CLIENT_URL=http://localhost:5173`
 - `IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key`
 - `IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key`
 - `IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint`
@@ -146,5 +151,5 @@ Backend default URL:
 ## Notes
 
 - The frontend sends authenticated requests with cookies.
-- The backend currently allows CORS from `http://localhost:5173`.
+- The backend allows CORS from the URL set in `CLIENT_URL` (defaults to `http://localhost:5173`).
 - Video uploads use ImageKit, so valid ImageKit credentials are required.
